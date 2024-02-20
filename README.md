@@ -1,15 +1,17 @@
-# ESPHome controller for NAD C356BEE
+# ESPHome controller for NAD C368/C388
 
-Control NAD C356BEE through RS232 from Home Assistant (HA) using ESPHome and a Wemos D1. The ESPhome configuration exposes the following entities to HA:
+Control NAD C368/C388 through RS232 from Home Assistant (HA) using ESPHome and a Wemos D1. The ESPhome configuration exposes the following entities to HA:
 
 - Power
 - Sources
 - Mute
 - Speaker A/B
 - Volume increment and decrement
+- Set volume level
 
 The entities are queried during startup and will automatically be updated based on the information received from the amplifier.
-Volume entities are state-less and therefore configured as buttons compared to the other entities which are configured as switches.
+Volume entities are configured as buttons and volume slider which can be added to Home Assistant universal media player integration.
+There is Home Assistant uart write service "nadrs232_write". You can send any command to RS232 over HA service.
 
 ![D1|300](https://user-images.githubusercontent.com/16154330/224545597-2250914c-15a7-4edc-a7ab-20a4b03c57b4.jpg)
 
@@ -32,21 +34,21 @@ The UART text sensor used for ESPHome is based on the description at [Custom UAR
 | GND      | GND     |
 | 3.3      | VCC     |
 
-## C356BEE RS232 command list
+## C368 RS232 command list
 
 Set the baud rate to `115200` to properly send and receive serial data from C356BEE. A reference for these commands can be
 found on this [webpage](https://www.yumpu.com/en/document/read/35405103/c356-rs232-command-list-nad-electronics-main-lektropacks).
 
-| Command         | Operators | Possible values                     | Description                   | Example             |
-| --------------- | --------- | ----------------------------------- | ----------------------------- | ------------------- |
-| `Main.Model`    | ?         | N/A                                 | Query model                   | `Main.Model?`       |
-| `Main.Mute`     | =/+/-/?   | On, Off                             | Set mute                      | `Main.Mute=On`      |
-| `Main.Power`    | =/+/-/?   | On, Off                             | Set power on/off              | `Main.Power=On`     |
-| `Main.Source`   | =/+/-/?   | TAPE2, DISC/MDC, MP, TUNER, AUX, CD | Set source                    | `Main.Source=CD`    |
-| `Main.SpeakerA` | =/+/-/?   | On, Off                             | Set speaker A on/off          | `Main.SpeakerA=On`  |
-| `Main.SpeakerB` | =/+/-/?   | On, Off                             | Set speaker B on/off          | `Main.SpeakerB=Off` |
-| `Main.Tape1`    | =/+/-/?   | On, Off                             | Set tape 1 on/off             | `Main.Tape1=On`     |
-| `Main.Volume`   | +/-       | N/A                                 | Increment or decrement volume | `Main.Volume+`      |
+| Command         | Operators | Possible values                     | Description                                   | Example             |
+| --------------- | --------- | ----------------------------------- | ----------------------------------------------| ------------------- |
+| `Main.Model`    | ?         | N/A                                 | Query model                                   | `Main.Model?`       |
+| `Main.Mute`     | =/+/-/?   | On, Off                             | Set mute                                      | `Main.Mute=On`      |
+| `Main.Power`    | =/+/-/?   | On, Off                             | Set power on/off                              | `Main.Power=On`     |
+| `Main.Source`   | =/+/-/?   | 1,2,3,4,5,6,7,8                     | Set source                                    | `Main.Source=CD`    |
+| `Main.SpeakerA` | =/+/-/?   | On, Off                             | Set speaker A on/off                          | `Main.SpeakerA=On`  |
+| `Main.SpeakerB` | =/+/-/?   | On, Off                             | Set speaker B on/off                          | `Main.SpeakerB=Off` |
+| `Main.Tape1`    | =/+/-/?   | On, Off                             | Set tape 1 on/off                             | `Main.Tape1=On`     |
+| `Main.Volume`   | =/+/-/?   | -70 to 20                           | Increment or decrement volume or set volume   | `Main.Volume+`      |
 
 ## 3D printed case
 
