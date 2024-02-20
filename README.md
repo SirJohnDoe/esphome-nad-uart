@@ -49,7 +49,6 @@ found on this [webpage](https://www.yumpu.com/en/document/read/35405103/c356-rs2
 | `Main.Source`   | =/+/-/?   | 1,2,3,4,5,6,7,8                     | Set source                                    | `Main.Source=CD`    |
 | `Main.SpeakerA` | =/+/-/?   | On, Off                             | Set speaker A on/off                          | `Main.SpeakerA=On`  |
 | `Main.SpeakerB` | =/+/-/?   | On, Off                             | Set speaker B on/off                          | `Main.SpeakerB=Off` |
-| `Main.Tape1`    | =/+/-/?   | On, Off                             | Set tape 1 on/off                             | `Main.Tape1=On`     |
 | `Main.Volume`   | =/+/-/?   | -70 to 20                           | Increment or decrement volume or set volume   | `Main.Volume+`      |
 
 ## 3D printed case
