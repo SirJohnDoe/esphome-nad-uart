@@ -3,8 +3,8 @@ substitutions:
   upper_devicename: NAD
 
 esphome:
-  name: nad-amplifier-remote
-  friendly_name: NAD amplifier remote
+  name: nadrs232
+  friendly_name: nadrs232
   includes:
     - uart_read_line_sensor.h
   on_boot:
@@ -14,6 +14,7 @@ esphome:
       - uart.write: "\rMain.SpeakerB?\r"
       - uart.write: "\rMain.Mute?\r"
       - uart.write: "\rMain.Source?\r"
+      - uart.write: "\rMain.Volume?\r"
 
 esp8266:
   board: d1_mini_lite
@@ -25,7 +26,21 @@ logger:
 
 # Enable Home Assistant API
 api:
-
+  services:
+  - service: write
+    variables:
+      command: string
+    then:
+      - uart.write:
+          id: uart_bus
+          data: !lambda |-
+              std::size_t pos;
+              std::string str = command;
+              while ((pos = str.find("\\r")) != std::string::npos)
+                str.replace(pos, 2, "\r");
+              std::vector<uint8_t> vec(str.begin(), str.end());
+              return vec; 
+              
 ota:
 
 wifi:
@@ -34,8 +49,8 @@ wifi:
     
 uart:
   id: uart_bus
-  rx_pin: D3
-  tx_pin: D4
+  rx_pin: 0
+  tx_pin: 2
   baud_rate: 115200
 
 text_sensor:
@@ -46,6 +61,42 @@ text_sensor:
     return {my_custom_sensor};
   text_sensors:
     id: "uart_readline"
+    on_value:
+      then:
+      - lambda: |-
+              std::string sensorState = id(uart_readline).state;
+              if (sensorState.length() > 0) {
+                size_t index = sensorState.find("Main.Volume=");
+                if (index != std::string::npos) {
+                  std::string floatValueStr = sensorState.substr(index + 12);
+                  float floatValue = atof(floatValueStr.c_str());
+                  id(current_volume).publish_state(floatValue);
+                }
+              }
+              
+- platform: template
+  name: "Volume String"
+  id: volume_string
+
+number:
+  - platform: template
+    name: "Current Volume"
+    id: current_volume
+    min_value: -70
+    max_value: 0
+    step: 0.5
+    icon: "mdi:volume-high"
+    set_action:
+      then:
+      - uart.write:
+          id: uart_bus
+          data: !lambda |-
+              std::size_t pos;
+              std::string str = "\rMain.Volume=" + std::to_string(x) + "\r";
+              while ((pos = str.find("\\r")) != std::string::npos)
+                str.replace(pos, 2, "\r");
+              std::vector<uint8_t> vec(str.begin(), str.end());
+              return vec; 
 
 button:
   - platform: template
@@ -59,6 +110,12 @@ button:
     icon: "mdi:volume-minus"
     on_press:
       - uart.write: "\rMain.Volume-\r"
+    
+  - platform: template
+    name: "Vol ?"
+    icon: "mdi:volume-equal"
+    on_press:
+      - uart.write: "\rMain.Volume?\r"
 
 switch:
   - platform: template
@@ -126,10 +183,11 @@ switch:
       - uart.write: "\rMain.Mute=Off\r"
 
   - platform: template
-    name: "Source CD"
+    name: "Source Optical 1"
+    id: source_optical1
     icon: "mdi:disc"
     lambda: |-
-      if (id(uart_readline).state == "Main.Source=CD") {
+      if (id(uart_readline).state == "Main.Source=1") {
         return true;
       } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
         return false;
@@ -137,15 +195,34 @@ switch:
         return {};
       }
     turn_on_action:
-      - uart.write: "\rMain.Source=CD\r"
+      - uart.write: "\rMain.Source=1\r"
     turn_off_action:
-      - uart.write: "\rMain.Source=CD\r"
+      - uart.write: "\rMain.Source=1\r"
+
+  #### UNCOMENT TO ADD SOURCE #####
+  # - platform: template
+  #   name: "Source Optical 2"
+  #   id: source_optical2
+  #   icon: "mdi:audio-input-rca"
+  #   lambda: |-
+  #     if (id(uart_readline).state == "Main.Source=2") {
+  #       return true;
+  #     } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
+  #       return false;
+  #     } else {
+  #       return {};
+  #     }
+  #   turn_on_action:
+  #     - uart.write: "\rMain.Source=2\r"
+  #   turn_off_action:
+  #     - uart.write: "\rMain.Source=2\r"
 
   - platform: template
-    name: "Source AUX"
+    name: "Source Coaxial 1"
+    id: source_coaxial1
     icon: "mdi:audio-input-rca"
     lambda: |-
-      if (id(uart_readline).state == "Main.Source=AUX") {
+      if (id(uart_readline).state == "Main.Source=3") {
         return true;
       } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
         return false;
@@ -153,71 +230,97 @@ switch:
         return {};
       }
     turn_on_action:
-      - uart.write: "\rMain.Source=Aux\r"
+      - uart.write: "\rMain.Source=3\r"
     turn_off_action:
-      - uart.write: "\rMain.Source=Aux\r"
+      - uart.write: "\rMain.Source=3\r"
 
-  - platform: template
-    name: "Source Tuner"
-    icon: "mdi:audio-input-rca"
-    lambda: |-
-      if (id(uart_readline).state == "Main.Source=TUNER") {
-        return true;
-      } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
-        return false;
-      } else {
-        return {};
-      }
-    turn_on_action:
-      - uart.write: "\rMain.Source=TUNER\r"
-    turn_off_action:
-      - uart.write: "\rMain.Source=TUNER\r"
+  #### UNCOMENT TO ADD SOURCE #####
+  # - platform: template
+  #   name: "Source Coaxial 2"
+  #   id: source_coaxial2
+  #   icon: "mdi:audio-input-rca"
+  #   lambda: |-
+  #     if (id(uart_readline).state == "Main.Source=4") {
+  #       return true;
+  #     } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
+  #       return false;
+  #     } else {
+  #       return {};
+  #     }
+  #   turn_on_action:
+  #     - uart.write: "\rMain.Source=4\r"
+  #   turn_off_action:
+  #     - uart.write: "\rMain.Source=4\r"
 
-  - platform: template
-    name: "Source MP"
-    icon: "mdi:audio-input-stereo-minijack"
-    lambda: |-
-      if (id(uart_readline).state == "Main.Source=MP") {
-        return true;
-      } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
-        return false;
-      } else {
-        return {};
-      }
-    turn_on_action:
-      - uart.write: "\rMain.Source=MP\r"
-    turn_off_action:
-      - uart.write: "\rMain.Source=MP\r"
+  #### UNCOMENT TO ADD SOURCE #####
+  # - platform: template
+  #   name: "Source Phono"
+  #   id: source_phono
+  #   icon: "mdi:audio-input-rca"
+  #   lambda: |-
+  #     if (id(uart_readline).state == "Main.Source=5") {
+  #       return true;
+  #     } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
+  #       return false;
+  #     } else {
+  #       return {};
+  #     }
+  #   turn_on_action:
+  #     - uart.write: "\rMain.Source=5\r"
+  #   turn_off_action:
+  #     - uart.write: "\rMain.Source=5\r"
 
-  - platform: template
-    name: "Source Disc"
-    icon: "mdi:minidisc"
-    lambda: |-
-      if (id(uart_readline).state == "Main.Source=DISC/MDC") {
-        return true;
-      } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
-        return false;
-      } else {
-        return {};
-      }
-    turn_on_action:
-      - uart.write: "\rMain.Source=DISC/MDC\r"
-    turn_off_action:
-      - uart.write: "\rMain.Source=DISC/MDC\r"
+    #### UNCOMENT TO ADD SOURCE #####
+  # - platform: template
+  #   name: "Source Line 1"
+  #   id: source_line1
+  #   icon: "mdi:audio-input-rca"
+  #   lambda: |-
+  #     if (id(uart_readline).state == "Main.Source=6") {
+  #       return true;
+  #     } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
+  #       return false;
+  #     } else {
+  #       return {};
+  #     }
+  #   turn_on_action:
+  #     - uart.write: "\rMain.Source=6\r"
+  #   turn_off_action:
+  #     - uart.write: "\rMain.Source=6\r"
 
-  - platform: template
-    name: "Source Tape2"
-    icon: "mdi:cassette"
-    lambda: |-
-      if (id(uart_readline).state == "Main.Source=TAPE2") {
-        return true;
-      } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
-        return false;
-      } else {
-        return {};
-      }
-    turn_on_action:
-      - uart.write: "\rMain.Source=TAPE2\r"
-    turn_off_action:
-      - uart.write: "\rMain.Source=TAPE2\r"
+      #### UNCOMENT TO ADD SOURCE #####
+  # - platform: template
+  #   name: "Source Line 2"
+  #   id: source_line2
+  #   icon: "mdi:audio-input-rca"
+  #   lambda: |-
+  #     if (id(uart_readline).state == "Main.Source=7") {
+  #       return true;
+  #     } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
+  #       return false;
+  #     } else {
+  #       return {};
+  #     }
+  #   turn_on_action:
+  #     - uart.write: "\rMain.Source=7\r"
+  #   turn_off_action:
+  #     - uart.write: "\rMain.Source=7\r"
+
+      #### UNCOMENT TO ADD SOURCE #####
+  # - platform: template
+  #   name: "Source Bluetooth"
+  #   id: source_bluetooth
+  #   icon: "mdi:audio-input-rca"
+  #   lambda: |-
+  #     if (id(uart_readline).state == "Main.Source=8") {
+  #       return true;
+  #     } else if(id(uart_readline).state.substr(0,12) == "Main.Source=") {
+  #       return false;
+  #     } else {
+  #       return {};
+  #     }
+  #   turn_on_action:
+  #     - uart.write: "\rMain.Source=8\r"
+  #   turn_off_action:
+  #     - uart.write: "\rMain.Source=8\r"
 
