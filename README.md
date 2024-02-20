@@ -1,5 +1,7 @@
 # ESPHome controller for NAD C368/C388
 
+Big thanks for machosallad
+
 Control NAD C368/C388 through RS232 from Home Assistant (HA) using ESPHome and a Wemos D1. The ESPhome configuration exposes the following entities to HA:
 
 - Power
