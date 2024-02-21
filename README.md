@@ -36,9 +36,9 @@ The UART text sensor used for ESPHome is based on the description at [Custom UAR
 | GND      | GND     |
 | 3.3      | VCC     |
 
-## C368 RS232 command list
+## C368/C388 RS232 command list
 
-Set the baud rate to `115200` to properly send and receive serial data from C356BEE. A reference for these commands can be
+Set the baud rate to `115200` to properly send and receive serial data from C388. A reference for these commands can be
 found on this [webpage](https://www.yumpu.com/en/document/read/35405103/c356-rs232-command-list-nad-electronics-main-lektropacks).
 
 | Command         | Operators | Possible values                     | Description                                   | Example             |
