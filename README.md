@@ -1,6 +1,24 @@
 # ESPHome controller for NAD C368/C388
 
-Big thanks for machosallad
+Big thanks for [machosallad](https://github.com/machosallad/esphome-nad-uart) and [Trilis29](https://github.com/Trilis29/esphome-nad-uart)
+
+## Changes
+
+After forking this repo from Trilis29 I made the following changes:
+
+- Speaker A/B didn’t properly turn on or off. Seems like the commands are case sensitive, so I updated the commands.
+- Made a Source select entity to easily see which source is on
+- Added query commands after changing inputs so a remote can be used as well while still getting updated values in HA
+- Replaced the custom component with an external component so it's compatible with ESPHome 2025.2.0 and later
+
+## Getting started
+
+1. Prepare the hardware
+2. Put the components directory in your ESPHome folder
+3. Change the yaml config so it matches your inputs (sources), and update the 'board' if necessary
+4. Update your Wemos D1 device with the yaml config
+
+## Description
 
 Control NAD C368/C388 through RS232 from Home Assistant (HA) using ESPHome and a Wemos D1. The ESPhome configuration exposes the following entities to HA:
 
