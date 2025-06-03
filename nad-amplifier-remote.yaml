@@ -5,7 +5,7 @@ substitutions:
 esphome:
   name: "nadrs232"
   friendly_name: NAD Amp Controller
-  min_version: 2024.11.0
+  min_version: 2025.2.0
   name_add_mac_suffix: false
   on_boot:
     then:
