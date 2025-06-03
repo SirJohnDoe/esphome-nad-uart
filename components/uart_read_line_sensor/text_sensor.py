@@ -3,7 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import uart, text_sensor
 from esphome.const import CONF_ID
 
-CODEOWNERS = ["@your-github-handle"]
+CODEOWNERS = ["@SirJohnDoe"]
 DEPENDENCIES = ["uart"]
 AUTO_LOAD = ["text_sensor"]
 
